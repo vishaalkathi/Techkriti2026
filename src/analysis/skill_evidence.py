@@ -117,8 +117,12 @@ def build_skill_evidence(resume_skills, github_data):
         total_stars=0
         for repo in repos:
             repo_lang = (repo.get("language") or "").lower()
+            name = (repo.get("name") or "").lower()
+            desc = (repo.get("description") or "").lower()
 
-            if skill_lower in repo_lang:
+            text = repo_lang + " " + name + " " + desc
+
+            if skill_lower in text:
                 repo_count += 1
                 project_names.append(repo.get("name", ""))
 
