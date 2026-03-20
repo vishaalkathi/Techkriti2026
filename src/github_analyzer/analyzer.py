@@ -10,11 +10,13 @@ def analyze_github_profile(username):
         return {"error": "Invalid user"}
 
     results = []
-    total_score = 0
+    total_quality_score = 0
+    total_stars = 0
 
     for repo in repos[:5]:
-        repo_name = repo["name"]
-        clone_url = repo["clone_url"]
+        repo_name = repo.get("name")
+        clone_url = repo.get("clone_url")
+        stars = repo.get("stargazers_count", 0)
 
         local_path = clone_repo(clone_url, repo_name)
 
@@ -26,15 +28,25 @@ def analyze_github_profile(username):
         results.append({
             "repo": repo_name,
             "quality_score": quality_score,
-            "stars": repo["stargazers_count"]
+            "stars": stars
         })
 
-        total_score += quality_score
+        total_quality_score += quality_score
+        total_stars += stars
 
-    final_score = round(total_score / len(results), 2) if results else 0
+    # Avoid division by zero
+    repo_count = len(results)
+    avg_quality = round(total_quality_score / repo_count, 2) if repo_count > 0 else 0
+
+    # ✅ NEW: profile analytics (for scoring)
+    profile_analytics = {
+        "avg_quality": avg_quality,
+        "total_stars": total_stars,
+        "repo_count": repo_count
+    }
 
     return {
         "username": username,
         "repo_analysis": results,
-        "final_score": final_score
+        "profile_analytics": profile_analytics
     }
