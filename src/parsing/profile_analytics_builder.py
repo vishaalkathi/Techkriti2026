@@ -1,6 +1,6 @@
 
 from src.github_analyzer.analyzer import analyze_github_profile
-from services.coding_profile_service import analyze_coding_profiles
+from src.services.coding_profile_service import analyze_coding_profiles
 
 def build_profile_analytics(candidate_profile: dict) -> dict:
     """
