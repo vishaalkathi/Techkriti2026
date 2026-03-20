@@ -47,43 +47,7 @@ def analyze_flake8(repo_path):
 
 
 # -------------------------------
-# 🔹 SCORING HELPERS
-# -------------------------------
-
-def score_complexity(avg_complexity):
-    """
-    Lower complexity = better score
-    Typical range: 1–10
-    """
-    if avg_complexity == 0:
-        return 50  # neutral if no data
-
-    score = max(0, 100 - (avg_complexity * 10))
-    return min(score, 100)
-
-
-def score_maintainability(avg_mi):
-    """
-    MI is already 0–100
-    """
-    return max(0, min(avg_mi, 100))
-
-
-def score_linting(error_count, file_count):
-    """
-    Normalize errors per file
-    """
-    if file_count == 0:
-        return 50
-
-    errors_per_file = error_count / file_count
-
-    score = max(0, 100 - (errors_per_file * 20))
-    return min(score, 100)
-
-
-# -------------------------------
-# 🔹 FULL REPO QUALITY
+# 🔹 FULL REPO QUALITY (FINAL)
 # -------------------------------
 
 def analyze_repo_code_quality(repo_path):
@@ -102,30 +66,21 @@ def analyze_repo_code_quality(repo_path):
                 total_mi += mi
                 file_count += 1
 
+    # If no Python files found
     if file_count == 0:
-        return 0
+        return {
+            "avg_complexity": 0,
+            "maintainability_index": 0,
+            "flake8_issues": 0
+        }
 
     avg_complexity = total_complexity / file_count
     avg_mi = total_mi / file_count
 
     flake_errors = analyze_flake8(repo_path)
 
-    # -------------------------------
-    # 🔹 COMPONENT SCORES
-    # -------------------------------
-
-    complexity_score = score_complexity(avg_complexity)
-    mi_score = score_maintainability(avg_mi)
-    lint_score = score_linting(flake_errors, file_count)
-
-    # -------------------------------
-    # 🔹 FINAL WEIGHTED SCORE
-    # -------------------------------
-
-    final_score = (
-        0.3 * complexity_score +
-        0.4 * mi_score +
-        0.3 * lint_score
-    )
-
-    return round(final_score, 2)
+    return {
+        "avg_complexity": round(avg_complexity, 2),
+        "maintainability_index": round(avg_mi, 2),
+        "flake8_issues": flake_errors
+    }
