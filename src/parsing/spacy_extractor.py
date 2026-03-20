@@ -29,3 +29,23 @@ def extract_skills_spacy(text):
                     found_skills.add(canonical)
 
     return list(found_skills)
+
+def extract_candidate_ids(text):
+    candidate_ids = {}
+
+    github_pattern = r"github\.com/([A-Za-z0-9_-]+)"
+    github_id = re.search(github_pattern, text)
+    if github_id:
+        candidate_ids["github"] = github_id.group(1)
+
+    leetcode_pattern = r"leetcode\.com/([A-Za-z0-9_-]+)"
+    leetcode_id = re.search(leetcode_pattern, text)
+    if leetcode_id:
+        candidate_ids["leetcode"] = leetcode_id.group(1)
+
+    codeforces_pattern = r"codeforces\.com/profile/([A-Za-z0-9_-]+)"
+    codeforces_id = re.search(codeforces_pattern, text)
+    if codeforces_id:
+        candidate_ids["codeforces"] = codeforces_id.group(1)
+
+    return candidate_ids
