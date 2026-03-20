@@ -9,14 +9,13 @@ import pandas as pd
 import plotly.graph_objects as go
 
 # -----------------------------
-# 🔹 IMPORTS (PIPELINE)
+# 🔹 IMPORTS
 # -----------------------------
 from src.github_analyzer.analyzer import analyze_github_profile
 from src.services.coding_profile_service import analyze_coding_profiles
 from src.scoring.profile_scoring import compute_profile_score
 from src.ai.summary_generator import generate_profile_summary
 from src.matching.skill_matcher import match_skills
-from src.scoring.hybrid_scoring import calculate_score
 from src.parsing.resume_parser import load_skills, extract_resume_skills
 
 # -----------------------------
@@ -26,7 +25,7 @@ st.set_page_config(page_title="Dev Analyzer", layout="wide")
 st.title("🚀 Developer Profile Analyzer")
 
 # -----------------------------
-# 🔹 FILE SAVE
+# 🔹 SAVE FILE
 # -----------------------------
 def save_uploaded_file(uploaded_file):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
@@ -53,6 +52,31 @@ def gauge_chart(title, value):
     return fig
 
 # -----------------------------
+# 🔥 SKILL TAG UI
+# -----------------------------
+def render_skill_tags(skills, color):
+    if not skills:
+        st.write("No data")
+        return
+
+    tags = ""
+    for skill in skills:
+        tags += f"""
+        <span style="
+            background-color:{color};
+            color:white;
+            padding:6px 12px;
+            margin:4px;
+            border-radius:12px;
+            display:inline-block;
+            font-size:14px;
+        ">
+        {skill}
+        </span>
+        """
+    st.markdown(tags, unsafe_allow_html=True)
+
+# -----------------------------
 # 🔹 INPUTS
 # -----------------------------
 job_text = st.text_area("📄 Paste Job Description")
@@ -63,7 +87,7 @@ cf_handle = st.text_input("Codeforces Handle", "tourist")
 lc_username = st.text_input("LeetCode Username", "leetcode")
 
 # -----------------------------
-# 🔥 MAIN BUTTON (MERGED FLOW)
+# 🔥 MAIN BUTTON
 # -----------------------------
 if st.button("🔍 Analyze Candidate"):
 
@@ -74,21 +98,22 @@ if st.button("🔍 Analyze Candidate"):
     # Save resume
     resume_path = save_uploaded_file(resume_file)
 
+    # -----------------------------
+    # 🔹 RESUME + JD PROCESSING
+    # -----------------------------
     with st.spinner("Processing resume..."):
         resume_skills = extract_resume_skills(resume_path)
 
-    # Normalize job text
     job_text_clean = job_text.lower().replace(",", " ")
-
     all_skills = load_skills()
     job_skills = [skill for skill in all_skills if skill in job_text_clean]
 
     if not job_skills:
-        st.error("⚠️ No skills detected from job description. Try writing a proper sentence.")
+        st.error("⚠️ No skills detected from job description.")
         st.stop()
 
     # -----------------------------
-    # 🔹 GITHUB + CODING DATA
+    # 🔹 PROFILE DATA
     # -----------------------------
     with st.spinner("Fetching profile data..."):
 
@@ -108,7 +133,7 @@ if st.button("🔍 Analyze Candidate"):
         profile_analytics.update(coding_data)
 
     # -----------------------------
-    # 🔹 SKILL MERGING
+    # 🔹 SKILL MERGE
     # -----------------------------
     github_skills = profile_analytics.get("github_top_languages", [])
     candidate_skills = list(set(resume_skills + github_skills))
@@ -124,7 +149,7 @@ if st.button("🔍 Analyze Candidate"):
     summary = generate_profile_summary(profile_analytics)
 
     # -----------------------------
-    # 🔹 UI OUTPUT
+    # 🏆 SCORE
     # -----------------------------
     st.subheader("🏆 Score Overview")
 
@@ -135,47 +160,61 @@ if st.button("🔍 Analyze Candidate"):
     col3.plotly_chart(gauge_chart("Overall Score", scores.get("overall_profile_score", 0)), use_container_width=True)
 
     # -----------------------------
-    # 🔹 SUMMARY
+    # 🧠 SUMMARY
     # -----------------------------
     st.subheader("🧠 AI Summary")
     st.info(summary)
 
     # -----------------------------
-    # 🔹 SKILL ANALYSIS
+    # 🛠️ SKILLS UI (BEAUTIFUL)
     # -----------------------------
     st.subheader("🛠️ Skill Analysis")
 
     col1, col2 = st.columns(2)
 
-    col1.write("📄 Resume Skills")
-    col1.write(resume_skills)
+    with col1:
+        st.markdown("### 📄 Resume Skills")
+        render_skill_tags(resume_skills, "#4CAF50")
 
-    col2.write("💻 GitHub Skills")
-    col2.write(github_skills)
+    with col2:
+        st.markdown("### 💻 GitHub Skills")
+        render_skill_tags(github_skills, "#2196F3")
 
-    st.write("📌 Job Skills:", job_skills)
-
-    st.subheader("✅ Skill Matching")
-    st.write(skill_results)
+    st.markdown("### 📌 Job Skills")
+    render_skill_tags(job_skills, "#9C27B0")
 
     # -----------------------------
-    # 🔹 GITHUB METRICS
+    # ✅ MATCHING UI
+    # -----------------------------
+    matched = skill_results.get("matched_skills", [])
+    missing = skill_results.get("missing_skills", [])
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("### ✅ Matched Skills")
+        render_skill_tags(matched, "#2ECC71")
+
+    with col2:
+        st.markdown("### ❌ Missing Skills")
+        render_skill_tags(missing, "#E74C3C")
+
+    # -----------------------------
+    # 📊 GITHUB METRICS
     # -----------------------------
     st.subheader("📊 GitHub Insights")
 
     col1, col2, col3 = st.columns(3)
 
-    col1.metric("Maintainability Index", profile_analytics.get("github_maintainability_index", "N/A"))
-    col2.metric("Avg Complexity", profile_analytics.get("github_avg_complexity", "N/A"))
+    col1.metric("Maintainability", profile_analytics.get("github_maintainability_index", "N/A"))
+    col2.metric("Complexity", profile_analytics.get("github_avg_complexity", "N/A"))
     col3.metric("Flake8 Issues", profile_analytics.get("github_flake8_issues", "N/A"))
 
-    st.write("Languages:", github_skills)
-
     # -----------------------------
-    # 🔹 CODEFORCES
+    # ⚡ CODEFORCES
     # -----------------------------
     if profile_analytics.get("codeforces"):
-        st.subheader("⚡ Codeforces Insights")
+        st.subheader("⚡ Codeforces")
 
         cf = profile_analytics["codeforces"]
 
@@ -184,10 +223,10 @@ if st.button("🔍 Analyze Candidate"):
         col2.metric("Solved", cf.get("total_solved"))
 
     # -----------------------------
-    # 🔹 LEETCODE
+    # 🧩 LEETCODE
     # -----------------------------
     if profile_analytics.get("leetcode"):
-        st.subheader("🧩 LeetCode Insights")
+        st.subheader("🧩 LeetCode")
 
         lc = profile_analytics["leetcode"]
 

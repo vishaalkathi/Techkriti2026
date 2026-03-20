@@ -18,6 +18,7 @@ from src.explanation.report_generator import generate_report, generate_skill_rea
 from src.parsing.profile_analytics_builder import build_profile_analytics
 from src.parsing.profile_builder import build_profile
 from src.analysis.skill_evidence import build_skill_evidence
+from src.parsing.resume_parser import load_skills, extract_text_from_pdf, extract_resume_skills, extract_candidate_ids
 
 # -----------------------------
 # 🔹 PAGE CONFIG

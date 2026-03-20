@@ -1,0 +1,32 @@
+python
+java
+c++
+c
+javascript
+typescript
+sql
+mysql
+postgresql
+machine learning
+deep learning
+ml
+ai
+data science
+data analysis
+flask
+django
+fastapi
+docker
+kubernetes
+aws
+gcp
+azure
+tensorflow
+pytorch
+pandas
+numpy
+scikit-learn
+nlp
+computer vision
+react
+node.js

@@ -2,7 +2,7 @@ import fitz
 import re
 import os
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(_file_), "../../"))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
 SKILLS_PATH = os.path.join(BASE_DIR, "data", "skills_dataset.txt")
 
 def load_skills(file_path=SKILLS_PATH):
