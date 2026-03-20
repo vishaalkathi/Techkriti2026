@@ -18,12 +18,12 @@ def parse_leetcode_profile(username: str, data: dict) -> LeetCodeProfile:
         counts[difficulty] = row["count"]
         submissions[difficulty] = row["submissions"]
 
-    total_accepted_submissions = counts.get("All", 0)
+    total_solved = counts.get("All", 0)
     total_submissions = submissions.get("All", 0)
 
     acceptance_rate = None
     if total_submissions > 0:
-    acceptance_rate = round((total_accepted_submissions / total_submissions) * 100, 2)
+        acceptance_rate = round((total_solved / total_submissions) * 100, 2)
 
     return LeetCodeProfile(
         username=username,
