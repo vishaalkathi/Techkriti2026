@@ -20,8 +20,8 @@ from src.matching.skill_matcher import match_skills
 from src.scoring.hybrid_scoring import calculate_score
 from src.explanation.report_generator import generate_report
 from src.parsing.profile_analytics_builder import build_profile_analytics
-from src.parsing.job_parser import extract_job_skills
-from src.parsing.resume_parser import extract_resume_skills
+from src.parsing.profile_builder import build_profile
+
 from src.analysis.skill_evidence import build_skill_evidence
 from src.explanation.report_generator import generate_skill_reasoning
 
@@ -55,15 +55,21 @@ if st.button("Analyze Candidate"):
         resume_path = save_uploaded_file(resume_file)
 
         # Extract skills
-        job_skills = extract_job_skills(job_text)
-        resume_skills = extract_resume_skills(resume_path)
+        profile = build_profile(resume_path, job_text)
 
+        resume_data = profile["resume"]
+        jd_data = profile["job_description"]
+
+        resume_skills = resume_data["skills"]
+
+        # Combine required + preferred
+        job_skills = jd_data["required_skills"] + jd_data["preferred_skills"]
         candidate_name = leetcode_username or github_username or "Candidate"
 
         candidate_profile = {
-            "github_username": github_username,
-            "leetcode_username": leetcode_username,
-            "codeforces_handle": codeforces_handle
+            "github_username": github_username or resume_data["github_username"],
+            "leetcode_username": leetcode_username or resume_data["leetcode_username"],
+            "codeforces_handle": codeforces_handle or resume_data["codeforces_handle"]
         }
 
         with st.spinner("Analyzing candidate profiles..."):
@@ -74,6 +80,7 @@ if st.button("Analyze Candidate"):
             except Exception as e:
                 st.error(f"Failed to fetch profile data: {e}")
                 candidate_data = {}
+                skill_evidence = {}
         github_skills = candidate_data.get("github_top_languages", [])
 
         # Combine Resume + GitHub skills
@@ -85,7 +92,13 @@ if st.button("Analyze Candidate"):
         skill_results = match_skills(candidate_skills_combined, job_skills)
 
         # Hybrid scoring
-        total_score_dict = calculate_score(candidate_data, skill_results)
+        total_score_dict = calculate_score(
+            candidate_data,
+            skill_results,
+            skill_evidence,
+            resume_data,
+            jd_data
+        )
 
         breakdown = total_score_dict["breakdown"]
 
