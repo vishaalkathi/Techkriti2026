@@ -19,8 +19,9 @@ def save_uploaded_file(uploaded_file):
 from src.matching.skill_matcher import match_skills
 from src.scoring.hybrid_scoring import calculate_score
 from src.explanation.report_generator import generate_report
-from src.parsing.profile_analytics_builder import build_profile_analytics
-from src.parsing.job_parser import extract_job_skills
+#from src.parsing.profile_analytics_builder import build_profile_analytics
+from src.parsing.profile_builder import build_profile
+#from src.parsing.job_parser import extract_job_skills
 from src.parsing.resume_parser import extract_resume_skills
 from src.analysis.skill_evidence import build_skill_evidence
 from src.explanation.report_generator import generate_skill_reasoning
@@ -85,7 +86,7 @@ if st.button("Analyze Candidate"):
         skill_results = match_skills(candidate_skills_combined, job_skills)
 
         # Hybrid scoring
-        total_score_dict = calculate_score(candidate_data, skill_results)
+        total_score_dict = calculate_score(candidate_data, skill_results, skill_evidence)
 
         breakdown = total_score_dict["breakdown"]
 
