@@ -10,9 +10,7 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def call_llm(prompt, model="gpt-5", temperature=0.3):
-    """
-    Basic LLM call
-    """
+    
     try:
         response = client.chat.completions.create(
             model=model,
@@ -29,9 +27,7 @@ def call_llm(prompt, model="gpt-5", temperature=0.3):
         return ""
 
 def call_llm_json(prompt, model="gpt-5"):
-    """
-    Ensures JSON output
-    """
+    
     response = call_llm(prompt, model=model)
 
     try:
